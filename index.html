@@ -1,0 +1,1173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>One Vision Finance LATAM — Workload Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: #f0f2f5;
+            color: #2D2926;
+            min-height: 100vh;
+        }
+
+        /* NAV */
+        nav {
+            background: #2D2926;
+            padding: 16px 32px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        nav .logo {
+            color: #fff;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+        }
+        nav .logo span { color: #D51900; }
+        nav .nav-links { display: flex; gap: 8px; }
+        nav .nav-links button {
+            background: transparent;
+            color: #aaa;
+            border: 1px solid #333;
+            padding: 8px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        nav .nav-links button.active,
+        nav .nav-links button:hover {
+            background: #D51900;
+            color: #fff;
+            border-color: #D51900;
+        }
+
+        /* PAGES */
+        .page { display: none; max-width: 720px; margin: 40px auto; padding: 0 20px; }
+        .page.active { display: block; }
+        .page.dashboard-page { max-width: 960px; }
+
+        /* FORM PAGE */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        }
+        .card h1 {
+            font-size: 26px;
+            margin-bottom: 6px;
+        }
+        .card .subtitle {
+            color: #777;
+            font-size: 15px;
+            margin-bottom: 32px;
+        }
+
+        label {
+            display: block;
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #333;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            background: #fafafa;
+        }
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #D51900;
+            background: #fff;
+        }
+        textarea { resize: vertical; min-height: 80px; }
+
+        .field { margin-bottom: 28px; }
+
+        /* MOOD SELECTOR */
+        .mood-grid {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .mood-option {
+            flex: 1;
+            min-width: 100px;
+            text-align: center;
+            padding: 16px 8px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+        }
+        .mood-option:hover { border-color: #D51900; background: #fff5f4; }
+        .mood-option.selected { border-color: #D51900; background: #fde8e6; }
+        .mood-option .emoji { font-size: 32px; display: block; margin-bottom: 6px; }
+        .mood-option .mood-label { font-size: 13px; color: #555; font-weight: 500; }
+
+
+        /* SUBMIT */
+        .submit-btn {
+            width: 100%;
+            padding: 14px;
+            background: #D51900;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+        .submit-btn:hover { background: #B31500; }
+        .submit-btn:disabled { background: #ccc; cursor: not-allowed; }
+
+        /* SUCCESS */
+        .success-msg {
+            display: none;
+            text-align: center;
+            padding: 48px 20px;
+        }
+        .success-msg .check { font-size: 56px; margin-bottom: 16px; }
+        .success-msg h2 { margin-bottom: 8px; color: #2D2926; }
+        .success-msg p { color: #777; }
+
+        /* DASHBOARD */
+        .dash-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .dash-header h1 { font-size: 24px; }
+        .dash-header select {
+            width: auto;
+            padding: 8px 16px;
+            font-size: 14px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        .stat-card .stat-label { font-size: 13px; color: #888; margin-bottom: 4px; }
+        .stat-card .stat-value { font-size: 28px; font-weight: 700; }
+        .stat-card .stat-value.green { color: #2ecc71; }
+        .stat-card .stat-value.yellow { color: #f39c12; }
+        .stat-card .stat-value.red { color: #e74c3c; }
+
+        /* RESPONSE TABLE */
+        .responses-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            margin-bottom: 24px;
+            overflow-x: auto;
+        }
+        .responses-card h2 { font-size: 18px; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; font-size: 13px; color: #888; padding: 10px 12px; border-bottom: 2px solid #f0f0f0; }
+        td { padding: 12px; border-bottom: 1px solid #f0f0f0; font-size: 14px; vertical-align: top; }
+        tr:last-child td { border-bottom: none; }
+        .mood-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .mood-badge.thriving { background: #e8f8f0; color: #27ae60; }
+        .mood-badge.balanced { background: #eaf6fd; color: #2980b9; }
+        .mood-badge.managing { background: #fef9e7; color: #f39c12; }
+        .mood-badge.challenging { background: #fdecea; color: #e74c3c; }
+        .mood-badge.stretched { background: #f5eef8; color: #8e44ad; }
+
+        .stress-text { max-width: 300px; line-height: 1.5; }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #aaa;
+        }
+        .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+
+        /* EXPORT */
+        .export-btn {
+            padding: 10px 24px;
+            background: #2D2926;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .export-btn:hover { background: #3d3935; }
+
+        /* STRESS CLOUD */
+        .stress-cloud {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .stress-tag {
+            background: #f0f0f5;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #555;
+        }
+
+        /* CHART */
+        .chart-phase-group { margin-bottom: 20px; }
+        .chart-phase-label {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 8px;
+            color: #2D2926;
+        }
+        .chart-bar-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 6px;
+            gap: 10px;
+        }
+        .chart-dept-label {
+            width: 140px;
+            font-size: 13px;
+            color: #555;
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .chart-bar-track {
+            flex: 1;
+            background: #f0f0f5;
+            border-radius: 6px;
+            height: 24px;
+            overflow: hidden;
+        }
+        .chart-bar-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 0.4s ease;
+            display: flex;
+            align-items: center;
+            padding-left: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #fff;
+            min-width: 0;
+        }
+        .chart-bar-fill.low { background: #2ecc71; }
+        .chart-bar-fill.medium { background: #f39c12; }
+        .chart-bar-fill.high { background: #e74c3c; }
+        .chart-bar-fill.critical { background: #8e44ad; }
+        .chart-score {
+            width: 40px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #555;
+            flex-shrink: 0;
+        }
+        .chart-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 16px;
+            flex-wrap: wrap;
+        }
+        .chart-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: #666;
+        }
+        .chart-legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+        }
+        .chart-empty {
+            text-align: center;
+            padding: 32px;
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        /* THERMOMETER */
+        .thermo-row {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        .thermo-cell {
+            text-align: center;
+            border-radius: 8px;
+            padding: 12px 4px;
+            transition: all 0.3s;
+        }
+        .thermo-month {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            color: inherit;
+        }
+        .thermo-score {
+            font-size: 18px;
+            font-weight: 800;
+        }
+        .thermo-quarter-label {
+            font-size: 11px;
+            margin-top: 2px;
+            opacity: 0.7;
+        }
+        .thermo-cell.empty {
+            background: #f5f5f5;
+            color: #ccc;
+        }
+        .thermo-cell.level-1 { background: #e8f8f0; color: #1e8449; }
+        .thermo-cell.level-2 { background: #d4efdf; color: #1e8449; }
+        .thermo-cell.level-3 { background: #fef9e7; color: #b7950b; }
+        .thermo-cell.level-4 { background: #fdebd0; color: #ca6f1e; }
+        .thermo-cell.level-5 { background: #fadbd8; color: #c0392b; }
+        .thermo-cell.level-6 { background: #e74c3c; color: #fff; }
+        .thermo-cell.hottest {
+            box-shadow: 0 0 0 3px #D51900;
+            transform: scale(1.05);
+            z-index: 1;
+            position: relative;
+        }
+        .thermo-indicator {
+            font-size: 10px;
+            margin-top: 2px;
+        }
+        .thermo-quarters {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 4px;
+            margin-top: 4px;
+        }
+        .thermo-q {
+            text-align: center;
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            padding: 4px;
+            border-top: 2px solid #e0e0e0;
+        }
+
+        @media (max-width: 600px) {
+            .thermo-row { grid-template-columns: repeat(6, 1fr); }
+            .thermo-quarters { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* BEHAVIOUR GRID */
+        .behaviour-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .behaviour-option {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: #fafafa;
+            position: relative;
+        }
+        .behaviour-option:hover { border-color: #D51900; background: #fff5f4; }
+        .behaviour-option.selected { border-color: #D51900; background: #fde8e6; }
+        .behaviour-icon { font-size: 20px; flex-shrink: 0; }
+        .behaviour-label { font-size: 14px; color: #333; font-weight: 500; flex: 1; }
+        .behaviour-rank {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            flex-shrink: 0;
+        }
+        .behaviour-option.selected .behaviour-rank {
+            background: #D51900;
+        }
+
+        /* PASSWORD OVERLAY */
+        .pw-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(45,41,38,0.85);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .pw-overlay.active { display: flex; }
+        .pw-box {
+            background: #fff;
+            border-radius: 16px;
+            padding: 40px;
+            width: 380px;
+            max-width: 90vw;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        .pw-box h2 { font-size: 20px; margin-bottom: 6px; color: #2D2926; }
+        .pw-box p { font-size: 14px; color: #888; margin-bottom: 20px; }
+        .pw-box input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-family: inherit;
+            text-align: center;
+            margin-bottom: 16px;
+        }
+        .pw-box input:focus { outline: none; border-color: #D51900; }
+        .pw-box .pw-error {
+            color: #e74c3c;
+            font-size: 13px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .pw-box button {
+            width: 100%;
+            padding: 12px;
+            background: #D51900;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .pw-box button:hover { background: #B31500; }
+        .pw-cancel {
+            margin-top: 12px;
+            background: none !important;
+            color: #888 !important;
+            font-size: 13px !important;
+            font-weight: 400 !important;
+        }
+        .pw-cancel:hover { color: #555 !important; }
+
+        @media (max-width: 600px) {
+            .mood-grid { gap: 8px; }
+            .mood-option { min-width: 70px; padding: 12px 4px; }
+            .mood-option .emoji { font-size: 24px; }
+            .card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav>
+    <div class="logo">One Vision <span>Finance LATAM</span></div>
+    <div class="nav-links">
+        <button id="nav-form" class="active" onclick="showPage('form')">Check-in</button>
+        <button id="nav-dash" onclick="showPage('dashboard')">Dashboard</button>
+    </div>
+</nav>
+
+<!-- CHECK-IN FORM -->
+<div id="page-form" class="page active">
+    <div class="card">
+        <div id="form-content">
+            <h1>Monthly Check-in</h1>
+            <h2 id="checkin-month" style="text-align:center; color:#D51900; font-size:22px; font-weight:700; margin:-8px 0 8px 0;"></h2>
+            <p class="subtitle">Takes less than 1 minute. Your input helps us plan better.</p>
+            <script>
+                document.getElementById("checkin-month").textContent =
+                    new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+            </script>
+
+            <div class="field">
+                <label>How are you feeling? (overall check-in)</label>
+                <div class="mood-grid" id="mood-grid">
+                    <div class="mood-option" data-mood="Thriving" onclick="selectMood(this)">
+                        <span class="emoji">&#128513;</span>
+                        <span class="mood-label">Thriving</span>
+                    </div>
+                    <div class="mood-option" data-mood="Balanced" onclick="selectMood(this)">
+                        <span class="emoji">&#128578;</span>
+                        <span class="mood-label">Balanced</span>
+                    </div>
+                    <div class="mood-option" data-mood="Managing" onclick="selectMood(this)">
+                        <span class="emoji">&#128528;</span>
+                        <span class="mood-label">Managing</span>
+                    </div>
+                    <div class="mood-option" data-mood="Challenging" onclick="selectMood(this)">
+                        <span class="emoji">&#128555;</span>
+                        <span class="mood-label">Challenging</span>
+                    </div>
+                    <div class="mood-option" data-mood="Stretched" onclick="selectMood(this)">
+                        <span class="emoji">&#129327;</span>
+                        <span class="mood-label">Stretched</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field">
+                <label>What of the behaviours below would benefit you the most? (rank your top 3)</label>
+                <div class="behaviour-grid" id="behaviour-grid">
+                    <div class="behaviour-option" data-behaviour="Delegate with clarity" onclick="toggleBehaviour(this)">
+                        <span class="behaviour-icon">🎯</span>
+                        <span class="behaviour-label">Delegate with clarity</span>
+                        <span class="behaviour-rank"></span>
+                    </div>
+                    <div class="behaviour-option" data-behaviour='Reduce meetings / "Avoiding FOMO"' onclick="toggleBehaviour(this)">
+                        <span class="behaviour-icon">📅</span>
+                        <span class="behaviour-label">Reduce meetings / "Avoiding FOMO"</span>
+                        <span class="behaviour-rank"></span>
+                    </div>
+                    <div class="behaviour-option" data-behaviour='Avoid over commitment / "Saying No"' onclick="toggleBehaviour(this)">
+                        <span class="behaviour-icon">✋</span>
+                        <span class="behaviour-label">Avoid over commitment / "Saying No"</span>
+                        <span class="behaviour-rank"></span>
+                    </div>
+                    <div class="behaviour-option" data-behaviour="Communicate Clearly" onclick="toggleBehaviour(this)">
+                        <span class="behaviour-icon">💬</span>
+                        <span class="behaviour-label">Communicate Clearly</span>
+                        <span class="behaviour-rank"></span>
+                    </div>
+                    <div class="behaviour-option" data-behaviour="Avoid pointless perfectionism" onclick="toggleBehaviour(this)">
+                        <span class="behaviour-icon">⚡</span>
+                        <span class="behaviour-label">Avoid pointless perfectionism</span>
+                        <span class="behaviour-rank"></span>
+                    </div>
+                    <div class="behaviour-option" data-behaviour="Prioritize / Practice 80:20" onclick="toggleBehaviour(this)">
+                        <span class="behaviour-icon">📊</span>
+                        <span class="behaviour-label">Prioritize / Practice 80:20</span>
+                        <span class="behaviour-rank"></span>
+                    </div>
+                </div>
+                <p style="font-size:12px; color:#999; margin-top:8px;">Click to select in order of priority. Click again to deselect.</p>
+            </div>
+
+            <div class="field">
+                <label>What can we do differently?</label>
+                <textarea id="notes-input" placeholder="Share your ideas, suggestions, or what you'd change..." rows="3"></textarea>
+            </div>
+
+            <button class="submit-btn" onclick="submitCheckin()">Submit Check-in</button>
+        </div>
+
+        <div id="success-content" class="success-msg">
+            <div class="check">&#9989;</div>
+            <h2>Thanks for checking in!</h2>
+            <p>Your response has been recorded.</p>
+        </div>
+
+        <div id="already-submitted" style="display:none; text-align:center; padding:40px 20px;">
+            <div style="font-size:48px; margin-bottom:16px;">&#9989;</div>
+            <h2 style="margin-bottom:8px; color:#2D2926;">You've already submitted this month!</h2>
+            <p style="color:#888; font-size:15px; margin-bottom:24px;">Thanks for checking in. Your response was recorded.<br>Come back next month for a new check-in.</p>
+            <div style="background:#f0f7f0; border-radius:12px; padding:16px; display:inline-block;">
+                <span style="font-size:14px; color:#1e8449; font-weight:600;">Next check-in opens in <span id="days-until-next"></span></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="page-dashboard" class="page dashboard-page">
+    <div class="dash-header">
+        <h1>Director Dashboard</h1>
+        <div style="display:flex; gap:10px; align-items:center;">
+            <select id="month-filter" onchange="renderDashboard()">
+                <option value="all">All months</option>
+            </select>
+            <button class="export-btn" onclick="exportCSV()">Export CSV</button>
+        </div>
+    </div>
+
+    <div class="stats-row" id="stats-row"></div>
+
+    <div class="responses-card">
+        <h2>Radical Simplicity — Behaviour Ranking</h2>
+        <p style="font-size:13px; color:#888; margin-bottom:16px;">Which behaviours would benefit the team the most? Weighted by ranking position.</p>
+        <div id="behaviour-chart"></div>
+    </div>
+
+    <div class="responses-card">
+        <h2>Annual Stress Thermometer</h2>
+        <p style="font-size:13px; color:#888; margin-bottom:16px;">Which months are the hottest? Based on all responses across departments.</p>
+        <div id="thermometer"></div>
+    </div>
+
+    <div class="responses-card">
+        <h2>What Can We Do Differently?</h2>
+        <div class="stress-cloud" id="stress-cloud"></div>
+    </div>
+
+    <div class="responses-card">
+        <h2>All Responses</h2>
+        <div id="responses-table"></div>
+    </div>
+</div>
+
+<!-- PASSWORD OVERLAY -->
+<div class="pw-overlay" id="pw-overlay">
+    <div class="pw-box">
+        <h2>Director Access</h2>
+        <p>Enter the password to view the dashboard.</p>
+        <div class="pw-error" id="pw-error">Incorrect password. Try again.</div>
+        <input type="password" id="pw-input" placeholder="Password" onkeydown="if(event.key==='Enter') checkPassword()">
+        <button onclick="checkPassword()">Unlock Dashboard</button>
+        <button class="pw-cancel" onclick="cancelPassword()">Cancel</button>
+    </div>
+</div>
+
+<script>
+    // ── CONFIG: Dashboard password ──
+    const DASH_PASSWORD = "latam2026";
+    let dashUnlocked = false;
+
+    // ── CONFIG ──
+    const GOOGLE_SHEETS_URL = "https://script.google.com/macros/s/AKfycby7VzbNFikyRm_pMFZskN4sTBnt73EVIwqA-54-P1J_DUN1u6L94SlOOYVGX634vWSa/exec";
+
+    const BEHAVIOURS = [
+        "Delegate with clarity",
+        'Reduce meetings / "Avoiding FOMO"',
+        'Avoid over commitment / "Saying No"',
+        "Communicate Clearly",
+        "Avoid pointless perfectionism",
+        "Prioritize / Practice 80:20",
+    ];
+
+    // ── STATE ──
+    let cachedResponses = [];
+    let selectedMood = null;
+    let selectedBehaviours = []; // ordered ranking
+
+    // ── BROWSER LOCK ──
+    function getCurrentMonth() {
+        return new Date().toISOString().slice(0, 7); // e.g. "2026-03"
+    }
+
+    function hasSubmittedThisMonth() {
+        return localStorage.getItem("onevision_submitted") === getCurrentMonth();
+    }
+
+    function markAsSubmitted() {
+        localStorage.setItem("onevision_submitted", getCurrentMonth());
+    }
+
+    function getDaysUntilNextMonth() {
+        const now = new Date();
+        const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+        const diff = Math.ceil((nextMonth - now) / (1000 * 60 * 60 * 24));
+        return diff === 1 ? "1 day" : diff + " days";
+    }
+
+    function checkIfAlreadySubmitted() {
+        if (hasSubmittedThisMonth()) {
+            document.getElementById("form-content").style.display = "none";
+            document.getElementById("success-content").style.display = "none";
+            document.getElementById("already-submitted").style.display = "block";
+            document.getElementById("days-until-next").textContent = getDaysUntilNextMonth();
+        }
+    }
+
+    // ── INIT ──
+    function init() {
+        fetchResponses();
+        checkIfAlreadySubmitted();
+    }
+
+    // ── BEHAVIOUR RANKING ──
+    function toggleBehaviour(el) {
+        const b = el.dataset.behaviour;
+        const idx = selectedBehaviours.indexOf(b);
+        if (idx !== -1) {
+            // Deselect
+            selectedBehaviours.splice(idx, 1);
+        } else if (selectedBehaviours.length < 3) {
+            // Select (max 3)
+            selectedBehaviours.push(b);
+        } else {
+            return; // Already 3 selected
+        }
+        // Update UI
+        document.querySelectorAll(".behaviour-option").forEach(opt => {
+            const bName = opt.dataset.behaviour;
+            const rank = selectedBehaviours.indexOf(bName);
+            if (rank !== -1) {
+                opt.classList.add("selected");
+                opt.querySelector(".behaviour-rank").textContent = "#" + (rank + 1);
+            } else {
+                opt.classList.remove("selected");
+                opt.querySelector(".behaviour-rank").textContent = "";
+            }
+        });
+    }
+
+    // ── MOOD SELECTION ──
+    function selectMood(el) {
+        document.querySelectorAll(".mood-option").forEach(m => m.classList.remove("selected"));
+        el.classList.add("selected");
+        selectedMood = el.dataset.mood;
+    }
+
+    // ── SUBMIT ──
+    function submitCheckin() {
+        const notes = document.getElementById("notes-input").value.trim();
+
+        if (!selectedMood) { alert("Please select how you're feeling."); return; }
+        if (selectedBehaviours.length === 0) { alert("Please select at least one behaviour."); return; }
+
+        const payload = {
+            mood: selectedMood,
+            b1: selectedBehaviours[0] || "",
+            b2: selectedBehaviours[1] || "",
+            b3: selectedBehaviours[2] || "",
+            notes,
+        };
+
+        // Show success & lock browser
+        document.getElementById("form-content").style.display = "none";
+        document.getElementById("success-content").style.display = "block";
+        markAsSubmitted();
+
+        // POST to Google Sheets
+        fetch(GOOGLE_SHEETS_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        }).catch(err => console.warn("Submit error:", err));
+
+        selectedMood = null;
+        selectedBehaviours = [];
+    }
+
+    // ── DATA (from Google Sheets) ──
+    function getResponses() {
+        return cachedResponses;
+    }
+
+    // Map old mood labels to new soft scale
+    function normalizeMood(mood) {
+        const map = {
+            "Great": "Thriving",
+            "Good": "Balanced",
+            "Okay": "Managing",
+            "Stressed": "Challenging",
+            "Overwhelmed": "Stretched",
+        };
+        return map[mood] || mood;
+    }
+
+    async function fetchResponses() {
+        try {
+            const res = await fetch(GOOGLE_SHEETS_URL);
+            const data = await res.json();
+            cachedResponses = data.map(r => ({
+                mood: normalizeMood(r.mood),
+                behaviours: r.behaviours || [],
+                notes: r.notes || "",
+                date: r.date,
+                month: r.month || (r.date ? String(r.date).slice(0, 7) : ""),
+            }));
+        } catch (err) {
+            console.warn("Fetch error:", err);
+            cachedResponses = [];
+            const statsRow = document.getElementById("stats-row");
+            if (statsRow) statsRow.innerHTML = '<div class="stat-card" style="grid-column:1/-1;text-align:center;color:#D51900;">Could not load data from Google Sheets. Check the Apps Script deployment permissions (must be "Anyone").</div>';
+        }
+    }
+
+    // ── MONTH FILTER ──
+    function populateMonthFilter() {
+        const months = [...new Set(getResponses().map(r => r.month).filter(Boolean))].sort();
+        const sel = document.getElementById("month-filter");
+        sel.innerHTML = '<option value="all">All months</option>';
+        months.forEach(m => {
+            const opt = document.createElement("option");
+            opt.value = m;
+            const [y, mo] = m.split("-");
+            const d = new Date(parseInt(y), parseInt(mo) - 1, 1);
+            opt.textContent = d.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+            sel.appendChild(opt);
+        });
+    }
+
+    // ── DASHBOARD ──
+    async function renderDashboard() {
+        await fetchResponses();
+        populateMonthFilter();
+        const filter = document.getElementById("month-filter").value;
+        let data = getResponses();
+        if (filter !== "all") data = data.filter(r => r.month === filter);
+
+        // Stats
+        const total = data.length;
+        const moodCounts = {};
+        data.forEach(r => { moodCounts[r.mood] = (moodCounts[r.mood] || 0) + 1; });
+
+        const stressedCount = (moodCounts["Challenging"] || 0) + (moodCounts["Stretched"] || 0);
+        const stressColor = stressedCount === 0 ? "green" : stressedCount <= 3 ? "yellow" : "red";
+
+        const overallScore = total > 0
+            ? (data.reduce((sum, r) => sum + moodToScore(r.mood), 0) / total).toFixed(1)
+            : "—";
+        const overallColor = overallScore === "—" ? "" : overallScore <= 2 ? "green" : overallScore <= 3 ? "yellow" : "red";
+
+        // Top behaviour
+        const behaviourWeights = {};
+        data.forEach(r => {
+            if (r.behaviours) {
+                r.behaviours.forEach((b, i) => {
+                    const weight = 3 - i; // #1=3pts, #2=2pts, #3=1pt
+                    behaviourWeights[b] = (behaviourWeights[b] || 0) + weight;
+                });
+            }
+        });
+        const topBehaviour = Object.keys(behaviourWeights).length > 0
+            ? Object.entries(behaviourWeights).sort((a, b) => b[1] - a[1])[0][0]
+            : "—";
+
+        document.getElementById("stats-row").innerHTML = `
+            <div class="stat-card">
+                <div class="stat-label">Stress Score</div>
+                <div class="stat-value ${overallColor}">${overallScore}<span style="font-size:14px;color:#888"> / 5</span></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Responses</div>
+                <div class="stat-value">${total}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Challenging / Stretched</div>
+                <div class="stat-value ${stressColor}">${stressedCount}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">#1 Behaviour Need</div>
+                <div class="stat-value" style="font-size:16px;color:#D51900;">${escapeHtml(topBehaviour)}</div>
+            </div>
+        `;
+
+        // Behaviour chart
+        renderBehaviourChart(data);
+
+        // Thermometer (always uses all data for yearly view)
+        renderThermometer(data);
+
+        // "What can we do differently" highlights
+        const notesEntries = data.filter(r => r.notes && r.notes.trim()).map(r => r.notes);
+        const cloud = document.getElementById("stress-cloud");
+        if (notesEntries.length === 0) {
+            cloud.innerHTML = '<span style="color:#aaa">No suggestions yet</span>';
+        } else {
+            cloud.innerHTML = notesEntries.map(s =>
+                `<span class="stress-tag">${escapeHtml(s.length > 80 ? s.slice(0, 80) + "..." : s)}</span>`
+            ).join("");
+        }
+
+        // Table
+        const tableDiv = document.getElementById("responses-table");
+        if (data.length === 0) {
+            tableDiv.innerHTML = `
+                <div class="empty-state">
+                    <div class="icon">&#128202;</div>
+                    <p>No responses yet. Share the link with your team!</p>
+                </div>`;
+            return;
+        }
+
+        const sorted = [...data].sort((a, b) => new Date(b.date) - new Date(a.date));
+        tableDiv.innerHTML = `
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mood</th>
+                        <th>Top Behaviours</th>
+                        <th>What can we do differently?</th>
+                        <th>Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${sorted.map(r => `
+                        <tr>
+                            <td><span class="mood-badge ${r.mood.toLowerCase()}">${moodEmoji(r.mood)} ${r.mood}</span></td>
+                            <td>${(r.behaviours || []).map((b, i) => `<span style="display:inline-block;background:#f0f0f5;padding:2px 10px;border-radius:12px;font-size:12px;margin:2px 4px 2px 0;font-weight:${i===0?'700':'400'};${i===0?'color:#D51900;background:#fde8e6;':''}">#${i+1} ${escapeHtml(b)}</span>`).join("")}</td>
+                            <td class="stress-text">${r.notes ? escapeHtml(r.notes) : '<span style="color:#ccc">—</span>'}</td>
+                            <td style="white-space:nowrap">${new Date(r.date).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</td>
+                        </tr>
+                    `).join("")}
+                </tbody>
+            </table>
+        `;
+    }
+
+    // ── BEHAVIOUR CHART ──
+    function moodToScore(mood) {
+        return { Thriving: 1, Balanced: 2, Managing: 3, Challenging: 4, Stretched: 5 }[mood] || 0;
+    }
+
+    function renderBehaviourChart(data) {
+        const chartDiv = document.getElementById("behaviour-chart");
+        const withBehaviours = data.filter(r => r.behaviours && r.behaviours.length > 0);
+
+        if (withBehaviours.length === 0) {
+            chartDiv.innerHTML = '<div class="chart-empty">No behaviour data yet. Responses will appear here.</div>';
+            return;
+        }
+
+        // Weighted scoring: #1 = 3pts, #2 = 2pts, #3 = 1pt
+        const scores = {};
+        const mentions = {};
+        BEHAVIOURS.forEach(b => { scores[b] = 0; mentions[b] = 0; });
+
+        withBehaviours.forEach(r => {
+            r.behaviours.forEach((b, i) => {
+                const weight = 3 - i;
+                scores[b] = (scores[b] || 0) + weight;
+                mentions[b] = (mentions[b] || 0) + 1;
+            });
+        });
+
+        // Sort by weighted score
+        const sorted = BEHAVIOURS.slice().sort((a, b) => scores[b] - scores[a]);
+        const maxScore = Math.max(...sorted.map(b => scores[b]), 1);
+
+        function scoreClass(pct) {
+            if (pct >= 75) return "critical";
+            if (pct >= 50) return "high";
+            if (pct >= 25) return "medium";
+            return "low";
+        }
+
+        let html = "";
+        sorted.forEach((b, i) => {
+            const pct = (scores[b] / maxScore) * 100;
+            const cls = scoreClass(pct);
+            html += `
+                <div class="chart-bar-row" style="margin-bottom:10px;">
+                    <div class="chart-dept-label" style="width:220px;text-align:left;font-weight:${i === 0 ? '700' : '400'};color:${i === 0 ? '#D51900' : '#555'};">${i === 0 ? '🏆 ' : ''}${escapeHtml(b)}</div>
+                    <div class="chart-bar-track">
+                        <div class="chart-bar-fill ${cls}" style="width:${pct}%">
+                            ${pct > 20 ? scores[b] + " pts" : ""}
+                        </div>
+                    </div>
+                    <div class="chart-score" style="width:60px;">${scores[b]} pts</div>
+                </div>`;
+        });
+
+        html += `<p style="font-size:12px;color:#aaa;margin-top:12px;">Scoring: #1 pick = 3pts, #2 = 2pts, #3 = 1pt. Based on ${withBehaviours.length} responses.</p>`;
+        chartDiv.innerHTML = html;
+    }
+
+    // ── THERMOMETER ──
+    function renderThermometer(allData) {
+        const thermoDiv = document.getElementById("thermometer");
+        const months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+        const quarters = ["Q1","Q2","Q3","Q4"];
+
+        // Calculate avg stress per month (use ALL data, ignore filter)
+        const allResponses = getResponses();
+        const monthScores = {};
+        allResponses.forEach(r => {
+            const m = new Date(r.date).getMonth(); // 0-11
+            if (!monthScores[m]) monthScores[m] = [];
+            monthScores[m].push(moodToScore(r.mood));
+        });
+
+        const avgByMonth = {};
+        let maxAvg = 0;
+        let hottestMonth = -1;
+        for (let i = 0; i < 12; i++) {
+            if (monthScores[i] && monthScores[i].length > 0) {
+                avgByMonth[i] = monthScores[i].reduce((a, b) => a + b, 0) / monthScores[i].length;
+                if (avgByMonth[i] > maxAvg) {
+                    maxAvg = avgByMonth[i];
+                    hottestMonth = i;
+                }
+            }
+        }
+
+        const hasData = Object.keys(avgByMonth).length > 0;
+        if (!hasData) {
+            thermoDiv.innerHTML = '<div class="chart-empty">No data yet. Responses will populate the thermometer over time.</div>';
+            return;
+        }
+
+        function getLevel(score) {
+            if (score <= 1.5) return "level-1";
+            if (score <= 2.0) return "level-2";
+            if (score <= 2.5) return "level-3";
+            if (score <= 3.5) return "level-4";
+            if (score <= 4.2) return "level-5";
+            return "level-6";
+        }
+
+        let html = '<div class="thermo-row">';
+        for (let i = 0; i < 12; i++) {
+            const score = avgByMonth[i];
+            const isHottest = i === hottestMonth && hasData;
+            if (score !== undefined) {
+                html += `
+                    <div class="thermo-cell ${getLevel(score)} ${isHottest ? 'hottest' : ''}">
+                        <div class="thermo-month">${months[i]}</div>
+                        <div class="thermo-score">${score.toFixed(1)}</div>
+                        ${isHottest ? '<div class="thermo-indicator">PEAK</div>' : ''}
+                    </div>`;
+            } else {
+                html += `
+                    <div class="thermo-cell empty">
+                        <div class="thermo-month">${months[i]}</div>
+                        <div class="thermo-score">—</div>
+                    </div>`;
+            }
+        }
+        html += '</div>';
+
+        // Quarter summary
+        html += '<div class="thermo-quarters">';
+        for (let q = 0; q < 4; q++) {
+            const qMonths = [q * 3, q * 3 + 1, q * 3 + 2];
+            const qScores = qMonths.filter(m => avgByMonth[m] !== undefined).map(m => avgByMonth[m]);
+            const qAvg = qScores.length > 0 ? (qScores.reduce((a, b) => a + b, 0) / qScores.length).toFixed(1) : "—";
+            html += `<div class="thermo-q">${quarters[q]}: ${qAvg}</div>`;
+        }
+        html += '</div>';
+
+        thermoDiv.innerHTML = html;
+    }
+
+    function moodEmoji(mood) {
+        return { Thriving: "😁", Balanced: "🙂", Managing: "😐", Challenging: "😟", Stretched: "😩" }[mood] || "";
+    }
+
+    function escapeHtml(str) {
+        const div = document.createElement("div");
+        div.textContent = str;
+        return div.innerHTML;
+    }
+
+    // ── EXPORT CSV ──
+    function exportCSV() {
+        const data = getResponses();
+        if (data.length === 0) { alert("No data to export."); return; }
+
+        const headers = ["Mood", "Behaviour #1", "Behaviour #2", "Behaviour #3", "What can we do differently?", "Date"];
+        const rows = data.map(r => [
+            r.mood,
+            (r.behaviours && r.behaviours[0]) || "",
+            (r.behaviours && r.behaviours[1]) || "",
+            (r.behaviours && r.behaviours[2]) || "",
+            `"${(r.notes || "").replace(/"/g, '""')}"`,
+            new Date(r.date).toLocaleDateString(),
+        ]);
+
+        const csv = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+        const blob = new Blob([csv], { type: "text/csv" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `teampulse_export_${new Date().toISOString().slice(0, 10)}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+    }
+
+    // ── PASSWORD ──
+    function checkPassword() {
+        const input = document.getElementById("pw-input");
+        if (input.value === DASH_PASSWORD) {
+            dashUnlocked = true;
+            document.getElementById("pw-overlay").classList.remove("active");
+            document.getElementById("pw-error").style.display = "none";
+            input.value = "";
+            showPage("dashboard");
+        } else {
+            document.getElementById("pw-error").style.display = "block";
+            input.value = "";
+            input.focus();
+        }
+    }
+
+    function cancelPassword() {
+        document.getElementById("pw-overlay").classList.remove("active");
+        document.getElementById("pw-input").value = "";
+        document.getElementById("pw-error").style.display = "none";
+    }
+
+    // ── PAGE NAV ──
+    function showPage(page) {
+        if (page === "dashboard" && !dashUnlocked) {
+            document.getElementById("pw-overlay").classList.add("active");
+            setTimeout(() => document.getElementById("pw-input").focus(), 100);
+            return;
+        }
+
+        document.querySelectorAll(".page").forEach(p => p.classList.remove("active"));
+        document.querySelectorAll(".nav-links button").forEach(b => b.classList.remove("active"));
+        document.getElementById(`page-${page}`).classList.add("active");
+        document.getElementById(`nav-${page === "form" ? "form" : "dash"}`).classList.add("active");
+
+        if (page === "dashboard") {
+            renderDashboard(); // fetches data, then populates month filter
+        }
+        if (page === "form") {
+            if (hasSubmittedThisMonth()) {
+                document.getElementById("form-content").style.display = "none";
+                document.getElementById("success-content").style.display = "none";
+                document.getElementById("already-submitted").style.display = "block";
+                document.getElementById("days-until-next").textContent = getDaysUntilNextMonth();
+            } else {
+                document.getElementById("form-content").style.display = "block";
+                document.getElementById("success-content").style.display = "none";
+                document.getElementById("already-submitted").style.display = "none";
+                document.getElementById("notes-input").value = "";
+                document.querySelectorAll(".mood-option").forEach(m => m.classList.remove("selected"));
+                document.querySelectorAll(".behaviour-option").forEach(b => {
+                    b.classList.remove("selected");
+                    b.querySelector(".behaviour-rank").textContent = "";
+                });
+                selectedMood = null;
+                selectedBehaviours = [];
+            }
+        }
+    }
+
+    init();
+</script>
+
+</body>
+</html>
