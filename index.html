@@ -513,10 +513,19 @@
             <h1>Monthly Check-in</h1>
             <h2 id="checkin-month" style="text-align:center; color:#D51900; font-size:22px; font-weight:700; margin:-8px 0 8px 0;"></h2>
             <p class="subtitle">Takes less than 1 minute. Your input helps us plan better.</p>
+            <div id="submission-counter" style="text-align:center; margin:12px 0 16px 0; padding:10px 16px; background:#f0f9f0; border-radius:12px; display:none;">
+                <span style="font-size:14px; color:#555;">✅ <strong id="counter-value">0</strong> people have checked in this month</span>
+            </div>
             <script>
                 document.getElementById("checkin-month").textContent =
                     new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
             </script>
+
+            <div class="field">
+                <label>What's your name?</label>
+                <input type="text" id="name-input" placeholder="e.g., Maria, João..." style="width:100%; padding:12px 16px; border:2px solid #e0e0e0; border-radius:12px; font-size:15px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#D51900'" onblur="this.style.borderColor='#e0e0e0'">
+                <p style="font-size:12px; color:#999; margin-top:6px;">Your name is only used to track who submitted — it's not linked to your answers.</p>
+            </div>
 
             <div class="field">
                 <label>How are you feeling? (overall check-in)</label>
@@ -754,12 +763,15 @@
 
     // ── SUBMIT ──
     function submitCheckin() {
+        const name = document.getElementById("name-input").value.trim();
         const notes = document.getElementById("notes-input").value.trim();
 
+        if (!name) { alert("Please enter your name."); return; }
         if (!selectedMood) { alert("Please select how you're feeling."); return; }
         if (selectedBehaviours.length === 0) { alert("Please select at least one behaviour."); return; }
 
         const payload = {
+            name,
             mood: selectedMood,
             b1: selectedBehaviours[0] || "",
             b2: selectedBehaviours[1] || "",
@@ -809,14 +821,32 @@
                 mood: normalizeMood(r.mood),
                 behaviours: r.behaviours || [],
                 notes: r.notes || "",
+                name: r.name || "",
                 date: r.date,
                 month: r.month || (r.date ? String(r.date).slice(0, 7) : ""),
             }));
+            updateCounter();
         } catch (err) {
             console.warn("Fetch error:", err);
             cachedResponses = [];
             const statsRow = document.getElementById("stats-row");
             if (statsRow) statsRow.innerHTML = '<div class="stat-card" style="grid-column:1/-1;text-align:center;color:#D51900;">Could not load data from Google Sheets. Check the Apps Script deployment permissions (must be "Anyone").</div>';
+        }
+    }
+
+    function updateCounter() {
+        const currentMonth = getCurrentMonth();
+        const thisMonthNames = cachedResponses
+            .filter(r => r.month === currentMonth && r.name)
+            .map(r => r.name);
+        const unique = [...new Set(thisMonthNames)];
+        const counterEl = document.getElementById("submission-counter");
+        const counterVal = document.getElementById("counter-value");
+        if (unique.length > 0) {
+            counterVal.textContent = unique.length;
+            counterEl.style.display = "block";
+        } else {
+            counterEl.style.display = "none";
         }
     }
 
@@ -1160,6 +1190,7 @@
                 document.getElementById("form-content").style.display = "block";
                 document.getElementById("success-content").style.display = "none";
                 document.getElementById("already-submitted").style.display = "none";
+                document.getElementById("name-input").value = "";
                 document.getElementById("notes-input").value = "";
                 document.querySelectorAll(".mood-option").forEach(m => m.classList.remove("selected"));
                 document.querySelectorAll(".behaviour-option").forEach(b => {
