@@ -517,10 +517,7 @@
                 <span style="font-size:14px; color:#555;">✅ <strong id="counter-value">0</strong> people have checked in this month</span>
             </div>
             <script>
-                var _now = new Date();
-                var _prev = new Date(_now.getFullYear(), _now.getMonth() - 1, 1);
-                document.getElementById("checkin-month").textContent =
-                    _prev.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+                // Will be set by init() after getSurveyMonthLabel is available
             </script>
 
             <div class="field">
@@ -695,25 +692,35 @@
     let selectedBehaviours = []; // ordered ranking
 
     // ── BROWSER LOCK ──
-    // Always refers to the PREVIOUS month (survey sent after month close)
-    function getCurrentMonth() {
+    // Survey month logic:
+    // - Day >= 25: survey is about CURRENT month (sent at end of month)
+    // - Day < 25: survey is about PREVIOUS month (responses coming in after close)
+    function getSurveyMonth() {
         const now = new Date();
-        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        return prev.toISOString().slice(0, 7); // e.g. "2026-02" when it's March
+        const ref = now.getDate() >= 25
+            ? new Date(now.getFullYear(), now.getMonth(), 1)
+            : new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return ref.toISOString().slice(0, 7);
     }
 
-    function getPreviousMonthLabel() {
+    function getSurveyMonthLabel() {
         const now = new Date();
-        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
-        return prev.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+        const ref = now.getDate() >= 25
+            ? new Date(now.getFullYear(), now.getMonth(), 1)
+            : new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return ref.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+    }
+
+    function getCurrentMonth() {
+        return getSurveyMonth();
     }
 
     function hasSubmittedThisMonth() {
-        return localStorage.getItem("onevision_submitted_v4") === getCurrentMonth();
+        return localStorage.getItem("onevision_submitted_v5") === getCurrentMonth();
     }
 
     function markAsSubmitted() {
-        localStorage.setItem("onevision_submitted_v4", getCurrentMonth());
+        localStorage.setItem("onevision_submitted_v5", getCurrentMonth());
     }
 
     function getDaysUntilNextMonth() {
@@ -734,6 +741,7 @@
 
     // ── INIT ──
     function init() {
+        document.getElementById("checkin-month").textContent = getSurveyMonthLabel();
         fetchResponses();
         checkIfAlreadySubmitted();
     }
