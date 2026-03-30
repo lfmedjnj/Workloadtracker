@@ -698,11 +698,11 @@
     }
 
     function hasSubmittedThisMonth() {
-        return localStorage.getItem("onevision_submitted_v2") === getCurrentMonth();
+        return localStorage.getItem("onevision_submitted_v3") === getCurrentMonth();
     }
 
     function markAsSubmitted() {
-        localStorage.setItem("onevision_submitted_v2", getCurrentMonth());
+        localStorage.setItem("onevision_submitted_v3", getCurrentMonth());
     }
 
     function getDaysUntilNextMonth() {
