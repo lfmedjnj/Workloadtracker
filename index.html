@@ -517,8 +517,10 @@
                 <span style="font-size:14px; color:#555;">✅ <strong id="counter-value">0</strong> people have checked in this month</span>
             </div>
             <script>
+                var _now = new Date();
+                var _prev = new Date(_now.getFullYear(), _now.getMonth() - 1, 1);
                 document.getElementById("checkin-month").textContent =
-                    new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" });
+                    _prev.toLocaleDateString("en-US", { month: "long", year: "numeric" });
             </script>
 
             <div class="field">
@@ -693,8 +695,17 @@
     let selectedBehaviours = []; // ordered ranking
 
     // ── BROWSER LOCK ──
+    // Always refers to the PREVIOUS month (survey sent after month close)
     function getCurrentMonth() {
-        return new Date().toISOString().slice(0, 7); // e.g. "2026-03"
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return prev.toISOString().slice(0, 7); // e.g. "2026-02" when it's March
+    }
+
+    function getPreviousMonthLabel() {
+        const now = new Date();
+        const prev = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+        return prev.toLocaleDateString("en-US", { month: "long", year: "numeric" });
     }
 
     function hasSubmittedThisMonth() {
