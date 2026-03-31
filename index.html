@@ -521,12 +521,6 @@
             </script>
 
             <div class="field">
-                <label>What's your name?</label>
-                <input type="text" id="name-input" placeholder="e.g., Maria, João..." style="width:100%; padding:12px 16px; border:2px solid #e0e0e0; border-radius:12px; font-size:15px; outline:none; transition:border-color 0.2s;" onfocus="this.style.borderColor='#D51900'" onblur="this.style.borderColor='#e0e0e0'">
-                <p style="font-size:12px; color:#999; margin-top:6px;">Your name is only used to track who submitted — it's not linked to your answers.</p>
-            </div>
-
-            <div class="field">
                 <label>How are you feeling? (overall check-in)</label>
                 <div class="mood-grid" id="mood-grid">
                     <div class="mood-option" data-mood="Thriving" onclick="selectMood(this)">
@@ -789,15 +783,11 @@
 
     // ── SUBMIT ──
     function submitCheckin() {
-        const name = document.getElementById("name-input").value.trim();
         const notes = document.getElementById("notes-input").value.trim();
-
-        if (!name) { alert("Please enter your name."); return; }
         if (!selectedMood) { alert("Please select how you're feeling."); return; }
         if (selectedBehaviours.length === 0) { alert("Please select at least one behaviour."); return; }
 
         const payload = {
-            name,
             mood: selectedMood,
             b1: selectedBehaviours[0] || "",
             b2: selectedBehaviours[1] || "",
@@ -1216,7 +1206,6 @@
                 document.getElementById("form-content").style.display = "block";
                 document.getElementById("success-content").style.display = "none";
                 document.getElementById("already-submitted").style.display = "none";
-                document.getElementById("name-input").value = "";
                 document.getElementById("notes-input").value = "";
                 document.querySelectorAll(".mood-option").forEach(m => m.classList.remove("selected"));
                 document.querySelectorAll(".behaviour-option").forEach(b => {
