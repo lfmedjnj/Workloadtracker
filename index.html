@@ -848,19 +848,7 @@
     }
 
     function updateCounter() {
-        const currentMonth = getCurrentMonth();
-        const thisMonthNames = cachedResponses
-            .filter(r => r.month === currentMonth && r.name)
-            .map(r => r.name);
-        const unique = [...new Set(thisMonthNames)];
-        const counterEl = document.getElementById("submission-counter");
-        const counterVal = document.getElementById("counter-value");
-        if (unique.length > 0) {
-            counterVal.textContent = unique.length;
-            counterEl.style.display = "block";
-        } else {
-            counterEl.style.display = "none";
-        }
+        // Counter removed, no-op
     }
 
     // ── MONTH FILTER ──
