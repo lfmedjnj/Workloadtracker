@@ -829,21 +829,30 @@
     async function fetchResponses() {
         try {
             const res = await fetch(GOOGLE_SHEETS_URL);
-            const data = await res.json();
+            const text = await res.text();
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (parseErr) {
+                console.warn("JSON parse error:", parseErr, "Raw:", text.slice(0, 500));
+                cachedResponses = [];
+                return;
+            }
+            if (!Array.isArray(data)) {
+                console.warn("Expected array, got:", typeof data);
+                cachedResponses = [];
+                return;
+            }
             cachedResponses = data.map(r => ({
-                mood: normalizeMood(r.mood),
+                mood: normalizeMood(r.mood || ""),
                 behaviours: r.behaviours || [],
                 notes: r.notes || "",
-                name: r.name || "",
-                date: r.date,
+                date: r.date || "",
                 month: r.month || (r.date ? String(r.date).slice(0, 7) : ""),
             }));
-            updateCounter();
         } catch (err) {
             console.warn("Fetch error:", err);
             cachedResponses = [];
-            const statsRow = document.getElementById("stats-row");
-            if (statsRow) statsRow.innerHTML = '<div class="stat-card" style="grid-column:1/-1;text-align:center;color:#D51900;">Could not load data from Google Sheets. Check the Apps Script deployment permissions (must be "Anyone").</div>';
         }
     }
 
